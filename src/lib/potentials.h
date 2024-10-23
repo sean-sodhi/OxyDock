@@ -515,5 +515,33 @@ public:
 private:
     fl cutoff;
 };
+// OxygenPotential class to model hypoxic conditions
+class OxygenPotential : public Potential {
+public:
+    // Constructor takes the oxygen level (0.0 to 1.0)
+    OxygenPotential(fl oxygen_level_) : oxygen_level(oxygen_level_) { }
+
+    // Evaluate the potential between two atoms based on distance
+    fl eval(const atom& a, const atom& b, fl r) override {
+        if (r >= cutoff) return 0.0;
+        // Penalty increases as oxygen level decreases
+        const fl lambda = 1.0; // Decay constant
+        fl penalty = (1.0 - oxygen_level) * std::exp(-lambda * r);
+        return penalty;
+    }
+
+    // Evaluate the potential between two atom types based on distance
+    fl eval(sz t1, sz t2, fl r) override {
+        if (r >= cutoff) return 0.0;
+        const fl lambda = 1.0;
+        fl penalty = (1.0 - oxygen_level) * std::exp(-lambda * r);
+        return penalty;
+    }
+
+    fl get_cutoff() override { return cutoff; }
+private:
+    fl oxygen_level; // Oxygen level (0.0 hypoxic, 1.0 normoxic)
+    fl cutoff = 8.0; // Define a suitable cutoff distance
+};
 
 #endif
